@@ -3,20 +3,27 @@ import { useState, useRef } from "react";
 export default function TimerChallenge({ title, targetTime }) {
      const timer = useRef();
      const dialog = useRef();
-     const [timerStarted, setTimerStarted] = useState(false);
-     const [timerExpired, setTimerExpired] = useState(false);
+
+     const [timeRemaining, setTimeRemaining] = useState(targetTime * 1000);
+     const timerIsActive =
+          timeRemaining > 0 && timeRemaining < targetTime * 1000;
+     if (timeRemaining <= 0) {
+          clearInterval(timer.current);
+          dialog.current.open();
+     }
+     function handleReset() {
+          setTimeRemaining(targetTime * 1000);
+     }
      function handleStart() {
-          timer.current = setTimeout(() => {
-               setTimerExpired(true);
-               dialog.current.open();
-          }, targetTime * 1000);
-          setTimerStarted(true);
-          console.log("start");
+          timer.current = setInterval(() => {
+               setTimeRemaining((prev) => prev - 10);
+          }, 10);
      }
 
      function handleStop() {
-          clearTimeout(timer.current);
-          console.log("stop");
+          dialog.current.open();
+
+          clearInterval(timer.current);
      }
      return (
           <>
@@ -24,6 +31,8 @@ export default function TimerChallenge({ title, targetTime }) {
                     ref={dialog}
                     result="lost"
                     targetTime={targetTime}
+                    remainingTime={timeRemaining}
+                    onReset={handleReset}
                />
 
                <section className="challenge">
@@ -35,13 +44,13 @@ export default function TimerChallenge({ title, targetTime }) {
 
                     <p>
                          <button
-                              onClick={timerStarted ? handleStop : handleStart}
+                              onClick={timerIsActive ? handleStop : handleStart}
                          >
-                              {timerStarted ? "stop" : "start"} challenge
+                              {timerIsActive ? "stop" : "start"} challenge
                          </button>
                     </p>
-                    <p className={timerStarted ? "active" : undefined}>
-                         {timerStarted
+                    <p className={timerIsActive ? "active" : undefined}>
+                         {timerIsActive
                               ? "time is is running"
                               : "timer inactive"}
                     </p>
